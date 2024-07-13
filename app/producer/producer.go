@@ -59,9 +59,9 @@ func sendKafkaMessage(producer sarama.SyncProducer, users []models.User, ctx *gi
 
 	// Create a notification struct with the details
 	notification := models.Notification{
-		From:    fromUser,
-		To:      toUser,
-		Message: message,
+		From:    fromUser, //fromUser is the user sending the message
+		To:      toUser,   //toUser is the user receiving the message
+		Message: message,  //message is what is being sent
 	}
 
 	// Serialize the notification struct into JSON format
@@ -81,16 +81,16 @@ func sendKafkaMessage(producer sarama.SyncProducer, users []models.User, ctx *gi
 	return err
 }
 
-func sendMessageHandler(producer sarama.SyncProducer,
-	users []models.User) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
+// ----------------------------- This function handles the incoming HTTP POST request (it is the router) -----------------------------
+func sendMessageHandler(producer sarama.SyncProducer, users []models.User) gin.HandlerFunc {
+	return func(ctx *gin.Context) { //extracts fromID
 		fromID, err := getIDFromRequest("fromID", ctx)
 		if err != nil {
 			ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 			return
 		}
 
-		toID, err := getIDFromRequest("toID", ctx)
+		toID, err := getIDFromRequest("toID", ctx) ////extracts toID
 		if err != nil {
 			ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 			return
