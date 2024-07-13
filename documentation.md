@@ -371,4 +371,3 @@ func main() {
 - **`sendMessageHandler`**: A route handler function that processes the `/send` route.
 - **Middleware**: Functions that run before the route handler to perform preprocessing, such as authentication or logging.
 
-In conclusion, `sendMessageHandler` is a route handler, not middleware. It handles the specific logic for the `/send` route, while middleware functions can be used to perform actions on the request/response before reaching the route handler.
