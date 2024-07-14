@@ -40,6 +40,13 @@ func getUserIDFromRequest(ctx *gin.Context) (string, error) {
 }
 
 // ====== NOTIFICATION STORAGE ======
+
+/*
+The NotificationStore struct is designed to store and manage user notifications
+in a concurrent-safe manner. The sync.RWMutex ensures that multiple goroutines
+can safely read from and write to the data without causing race conditions or data corruption.
+*/
+
 type UserNotifications map[string][]models.Notification
 
 type NotificationStore struct {
