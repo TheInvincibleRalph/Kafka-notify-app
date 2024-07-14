@@ -114,6 +114,11 @@ func sendMessageHandler(producer sarama.SyncProducer, users []models.User) gin.H
 	}
 }
 
+/*
+The sendMessageHandler function returns a gin.HandlerFunc, which is a type for Gin route handlers.
+This allows the returned function to be used as a route handler in the Gin router.
+*/
+
 func setupProducer() (sarama.SyncProducer, error) {
 	config := sarama.NewConfig()
 	config.Producer.Return.Successes = true
