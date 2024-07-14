@@ -419,3 +419,54 @@ func main() {
           │ - Create router and register routes                     │
           │ - Print startup message and run server                  │
           └─────────────────────────────────────────────────────────┘
+
+
+
+
+## Kafka Consumer Group and Claims
+
+In the context of Kafka, a "claim" refers to a subset of partitions that a consumer instance is responsible for. When a consumer group is formed, Kafka partitions the topics into smaller pieces called "claims," and each claim is assigned to a consumer instance within the group. This way, the workload is distributed across multiple consumer instances.
+
+Here's a detailed explanation:
+
+1. **Consumer Group**:
+   - A consumer group is a group of consumer instances which together consume messages from a Kafka topic.
+   - Each consumer instance in a consumer group processes a subset of the topic's partitions. This ensures that the load is distributed and messages are processed in parallel.
+
+2. **Partitions**:
+   - Kafka topics are divided into partitions for scalability and parallel processing.
+   - Each partition can be thought of as an ordered sequence of messages that can be consumed independently.
+
+3. **Claims**:
+   - A claim is essentially a subset of these partitions assigned to a single consumer instance.
+   - Each consumer instance in the consumer group claims one or more partitions and is responsible for reading messages from them.
+
+### `ConsumeClaim` Method
+
+In the `ConsumeClaim` method of the `sarama.ConsumerGroupHandler` interface, the claim represents the partitions assigned to the consumer for processing.
+
+```go
+func (consumer *Consumer) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
+	for msg := range claim.Messages() {
+		userID := string(msg.Key)
+		var notification models.Notification
+		err := json.Unmarshal(msg.Value, &notification)
+		if err != nil {
+			log.Printf("failed to unmarshal notification: %v", err)
+			continue
+		}
+		consumer.store.Add(userID, notification)
+		sess.MarkMessage(msg, "")
+	}
+	return nil
+}
+```
+
+- **`sess sarama.ConsumerGroupSession`**: Represents the session for this claim, providing context and methods for marking messages as processed.
+- **`claim sarama.ConsumerGroupClaim`**: Represents the claim, i.e., the subset of partitions assigned to this consumer instance. It provides access to the messages within these partitions.
+- **`for msg := range claim.Messages()`**: Iterates over the messages in the claimed partitions.
+- **`sess.MarkMessage(msg, "")`**: Marks a message as processed, allowing Kafka to track the offset and ensure messages are not reprocessed.
+
+### Summary
+
+In Kafka, a claim is the subset of partitions assigned to a consumer instance within a consumer group. This allows for distributed and parallel processing of messages across multiple consumer instances, enhancing scalability and performance. The `ConsumeClaim` method in the Sarama library is where the actual message processing logic is implemented for these claimed partitions.

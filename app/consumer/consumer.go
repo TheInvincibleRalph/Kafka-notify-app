@@ -32,7 +32,7 @@ const (
 var ErrNoMessagesFound = errors.New("no messages found")
 
 func getUserIDFromRequest(ctx *gin.Context) (string, error) {
-	userID := ctx.Param("userID")
+	userID := ctx.Param("userID") //this method retrieves the value of the URL parameter named userID
 	if userID == "" {
 		return "", ErrNoMessagesFound
 	}
@@ -50,12 +50,11 @@ can safely read from and write to the data without causing race conditions or da
 type UserNotifications map[string][]models.Notification
 
 type NotificationStore struct {
-	data UserNotifications
+	data UserNotifications //this field holds the actual data of user notifications
 	mu   sync.RWMutex
 }
 
-func (ns *NotificationStore) Add(userID string,
-	notification models.Notification) {
+func (ns *NotificationStore) Add(userID string, notification models.Notification) {
 	ns.mu.Lock()
 	defer ns.mu.Unlock()
 	ns.data[userID] = append(ns.data[userID], notification)
@@ -69,14 +68,13 @@ func (ns *NotificationStore) Get(userID string) []models.Notification {
 
 // ============== KAFKA RELATED FUNCTIONS ==============
 type Consumer struct {
-	store *NotificationStore
+	store *NotificationStore //this store is used to keep track of notifications
 }
 
 func (*Consumer) Setup(sarama.ConsumerGroupSession) error   { return nil }
 func (*Consumer) Cleanup(sarama.ConsumerGroupSession) error { return nil }
 
-func (consumer *Consumer) ConsumeClaim(
-	sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
+func (consumer *Consumer) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	for msg := range claim.Messages() {
 		userID := string(msg.Key)
 		var notification models.Notification
@@ -160,8 +158,7 @@ func main() {
 		handleNotifications(ctx, store)
 	})
 
-	fmt.Printf("Kafka CONSUMER (Group: %s) 👥📥 "+
-		"started at http://localhost%s\n", ConsumerGroup, ConsumerPort)
+	fmt.Printf("Kafka CONSUMER (Group: %s) 👥📥 "+"started at http://localhost%s\n", ConsumerGroup, ConsumerPort)
 
 	if err := router.Run(ConsumerPort); err != nil {
 		log.Printf("failed to run the server: %v", err)
