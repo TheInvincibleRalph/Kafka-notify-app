@@ -81,7 +81,7 @@ func sendKafkaMessage(producer sarama.SyncProducer, users []models.User, ctx *gi
 	return err
 }
 
-// ----------------------------- This function handles the incoming HTTP POST request (it is the router) -----------------------------
+// ----------------------------- This function handles the incoming HTTP POST request (it is the router's handler) -----------------------------
 func sendMessageHandler(producer sarama.SyncProducer, users []models.User) gin.HandlerFunc {
 	return func(ctx *gin.Context) { //extracts fromID
 		fromID, err := getIDFromRequest("fromID", ctx)
@@ -119,11 +119,10 @@ The sendMessageHandler function returns a gin.HandlerFunc, which is a type for G
 This allows the returned function to be used as a route handler in the Gin router.
 */
 
-func setupProducer() (sarama.SyncProducer, error) {
-	config := sarama.NewConfig()
+func setupProducer() (sarama.SyncProducer, error) { //a function to setup a Kafka producer that sends messages synchronously (waits for acknowledgments).
+	config := sarama.NewConfig() //this line creates a new Kafka configuration object using the sarama library. The sarama.NewConfig function returns a pointer to a new Config struct with default settings.
 	config.Producer.Return.Successes = true
-	producer, err := sarama.NewSyncProducer([]string{KafkaServerAddress},
-		config)
+	producer, err := sarama.NewSyncProducer([]string{KafkaServerAddress}, config) //this line creates a new synchronous Kafka producer with the specified broker addresses and configuration.
 	if err != nil {
 		return nil, fmt.Errorf("failed to setup producer: %w", err)
 	}
