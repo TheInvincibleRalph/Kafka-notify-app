@@ -118,6 +118,8 @@ func sendMessageHandler(producer sarama.SyncProducer, users []models.User) gin.H
 /*
 The sendMessageHandler function returns a gin.HandlerFunc, which is a type for Gin route handlers.
 This allows the returned function to be used as a route handler in the Gin router.
+The notification is processed upon receiving a POST request via the sendMessageHandler() function,
+and an appropriate HTTP response is dispatched.
 */
 
 func setupProducer() (sarama.SyncProducer, error) { //a function to setup a Kafka producer that sends messages synchronously (waits for acknowledgments).
