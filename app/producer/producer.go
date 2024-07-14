@@ -42,7 +42,7 @@ func getIDFromRequest(formValue string, ctx *gin.Context) (int, error) {
 }
 
 // ============== KAFKA RELATED FUNCTIONS ==============
-func sendKafkaMessage(producer sarama.SyncProducer, users []models.User, ctx *gin.Context, fromID, toID int) error {
+func sendKafkaMessage(producer sarama.SyncProducer, users []models.User, ctx *gin.Context, fromID, toID int) error { //sendKafkaMessage constructs and sends a Kafka message after validating users.
 	message := ctx.PostForm("message") //ctx.PostForm("message") is used to extract the value associated with the key "message" from the form data of a POST request. The POST request in this context is the notification struct and the contents are FromID, ToID, and Message.
 
 	// Find the user who is sending the message
@@ -82,7 +82,8 @@ func sendKafkaMessage(producer sarama.SyncProducer, users []models.User, ctx *gi
 }
 
 // ----------------------------- This function handles the incoming HTTP POST request (it is the router's handler) -----------------------------
-func sendMessageHandler(producer sarama.SyncProducer, users []models.User) gin.HandlerFunc {
+func sendMessageHandler(producer sarama.SyncProducer, users []models.User) gin.HandlerFunc { //sendMessageHandler is a Gin handler that processes incoming requests to send messages.
+
 	return func(ctx *gin.Context) { //extracts fromID
 		fromID, err := getIDFromRequest("fromID", ctx)
 		if err != nil {
@@ -141,16 +142,16 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to initialize producer: %v", err)
 	}
-	defer producer.Close()
+	defer producer.Close() //this line ensures that the producer is properly closed when the main function exits, releasing any resources it holds.
 
-	gin.SetMode(gin.ReleaseMode)
-	router := gin.Default()
+	gin.SetMode(gin.ReleaseMode) //sets Gin to release mode, which disables debug output and optimizes performance.
+	router := gin.Default()      //creates a new Gin router with default middleware (like logging and recovery).
 	router.POST("/send", sendMessageHandler(producer, users))
 
 	fmt.Printf("Kafka PRODUCER 📨 started at http://localhost%s\n",
 		ProducerPort)
 
-	if err := router.Run(ProducerPort); err != nil {
+	if err := router.Run(ProducerPort); err != nil { //starts the Gin HTTP server on the specified port and logs any error encountered
 		log.Printf("failed to run the server: %v", err)
 	}
 }

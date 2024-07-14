@@ -371,3 +371,51 @@ func main() {
 - **`sendMessageHandler`**: A route handler function that processes the `/send` route.
 - **Middleware**: Functions that run before the route handler to perform preprocessing, such as authentication or logging.
 
+
+
+## High-level Logic
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                               producer.go Program                            │
+└──────────────────────────────────────────────────────────────────────────────┘
+                                        │
+                                        ▼
+          ┌─────────────────────────────────────────────────────────┐
+          │                   Imports and Constants                 │
+          │ - Import necessary packages                             │
+          │ - Define constants (ProducerPort, KafkaServerAddress)   │
+          └─────────────────────────────────────────────────────────┘
+                                        │
+                                        ▼
+          ┌─────────────────────────────────────────────────────────┐
+          │                    Helper Functions                     │
+          │ - Define custom error                                   │
+          │ - Define findUserByID to search for user by ID          │
+          │ - Define getIDFromRequest to extract form value as int  │
+          └─────────────────────────────────────────────────────────┘
+                                        │
+                                        ▼
+          ┌─────────────────────────────────────────────────────────┐
+          │                Kafka Related Functions                  │
+          │ - Define sendKafkaMessage to send messages to Kafka     │
+          │ - Define sendMessageHandler as Gin handler              │
+          │    - Extract IDs, validate users, send message          │
+          └─────────────────────────────────────────────────────────┘
+                                        │
+                                        ▼
+          ┌─────────────────────────────────────────────────────────┐
+          │                Setup Kafka Producer                     │
+          │ - Define setupProducer to configure and initialize Kafka│
+          │   producer                                               │
+          │ - Ensure proper error handling and resource cleanup     │
+          └─────────────────────────────────────────────────────────┘
+                                        │
+                                        ▼
+          ┌─────────────────────────────────────────────────────────┐
+          │                      Main Function                      │
+          │ - Create predefined list of users                       │
+          │ - Initialize Kafka producer                             │
+          │ - Set Gin mode to release                               │
+          │ - Create router and register routes                     │
+          │ - Print startup message and run server                  │
+          └─────────────────────────────────────────────────────────┘
