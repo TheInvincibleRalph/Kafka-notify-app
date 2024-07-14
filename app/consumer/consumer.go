@@ -85,23 +85,23 @@ func initializeConsumerGroup() (sarama.ConsumerGroup, error) {
 	return consumerGroup, nil
 }
 
-func setupConsumerGroup(ctx context.Context, store *NotificationStore) {
+func setupConsumerGroup(ctx context.Context, store *NotificationStore) { //this function sets up and runs the consumer group
 	consumerGroup, err := initializeConsumerGroup()
 	if err != nil {
 		log.Printf("initialization error: %v", err)
 	}
 	defer consumerGroup.Close()
 
-	consumer := &Consumer{
+	consumer := &Consumer{ //creates a new Consumer with the provided notification store
 		store: store,
 	}
 
-	for {
+	for { //continuously consumes messages from the Kafka topic
 		err = consumerGroup.Consume(ctx, []string{ConsumerTopic}, consumer)
 		if err != nil {
 			log.Printf("error from consumer: %v", err)
 		}
-		if ctx.Err() != nil {
+		if ctx.Err() != nil { //exits the loop if the context is canceled
 			return
 		}
 	}
@@ -122,7 +122,7 @@ func (consumer *Consumer) ConsumeClaim(sess sarama.ConsumerGroupSession, claim s
 	return nil
 }
 
-func handleNotifications(ctx *gin.Context, store *NotificationStore) {
+func handleNotifications(ctx *gin.Context, store *NotificationStore) { //this function handles HTTP requests to retrieve notifications for a user
 	userID, err := getUserIDFromRequest(ctx)
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"message": err.Error()})
