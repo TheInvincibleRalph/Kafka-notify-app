@@ -17,7 +17,7 @@ import (
 
 	"github.com/theinvincible/kafka-notify/user/models"
 
-	"github.com/IBM/sarama"
+	"github.com/IBM/sarama" //sarama is a Go library used for interacting with Apache Kafka. It provides the necessary tools and abstractions to produce and consume messages from Kafka topics.
 	"github.com/gin-gonic/gin"
 )
 
