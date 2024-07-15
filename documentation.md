@@ -679,3 +679,80 @@ func (ns *NotificationStore) GetNotifications(userID int) []Notification {
 #### Summary
 
 The `NotificationStore` struct, with its `sync.RWMutex`, is designed to manage user notifications in a thread-safe manner. The mutex ensures that data integrity is maintained by synchronizing access, allowing multiple readers or a single writer at any given time. This is crucial in concurrent applications where multiple goroutines might access or modify shared data simultaneously.
+
+
+## initializeConsumerGroup vs setupConsumerGroup
+
+The `initializeConsumerGroup` and `setupConsumerGroup` functions in the Kafka consumer application serve different purposes and operate at different levels of abstraction. Here is a breakdown:
+
+### `initializeConsumerGroup` Function
+
+**Purpose**: 
+- This function is responsible for creating and configuring a new Kafka consumer group.
+
+**Functionality**:
+- **Configures the Consumer Group**: It sets up the necessary configuration for the consumer group using `sarama.NewConfig`.
+- **Creates the Consumer Group**: It uses `sarama.NewConsumerGroup` to create the consumer group with the specified Kafka server address, consumer group ID, and configuration.
+- **Handles Initialization Errors**: It returns an error if the consumer group cannot be initialized.
+
+**Code**:
+```go
+func initializeConsumerGroup() (sarama.ConsumerGroup, error) {
+	config := sarama.NewConfig()
+	consumerGroup, err := sarama.NewConsumerGroup([]string{KafkaServerAddress}, ConsumerGroup, config)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize consumer group: %w", err)
+	}
+	return consumerGroup, nil
+}
+```
+
+### `setupConsumerGroup` Function
+
+**Purpose**: 
+- This function is responsible for continuously consuming messages from the Kafka topic using the consumer group initialized by `initializeConsumerGroup`. It manages the lifecycle of the consumer group and handles message processing.
+
+**Functionality**:
+- **Initializes the Consumer Group**: It calls `initializeConsumerGroup` to create and configure the consumer group.
+- **Defines a Consumer**: It creates a new instance of `Consumer`, which holds a reference to the `NotificationStore`.
+- **Starts the Consumption Loop**: It enters a loop that continuously consumes messages from the specified Kafka topic.
+- **Handles Consumption Errors**: It logs any errors encountered during message consumption and checks if the context has been canceled to exit the loop.
+
+**Code**:
+```go
+func setupConsumerGroup(ctx context.Context, store *NotificationStore) {
+	consumerGroup, err := initializeConsumerGroup()
+	if err != nil {
+		log.Printf("initialization error: %v", err)
+	}
+	defer consumerGroup.Close()
+
+	consumer := &Consumer{store: store}
+
+	for {
+		err = consumerGroup.Consume(ctx, []string{ConsumerTopic}, consumer)
+		if err != nil {
+			log.Printf("error from consumer: %v", err)
+		}
+		if ctx.Err() != nil {
+			return
+		}
+	}
+}
+```
+
+### Key Differences
+
+1. **Responsibility**:
+   - `initializeConsumerGroup`: Focuses on creating and configuring the consumer group.
+   - `setupConsumerGroup`: Focuses on managing the consumer group's lifecycle, including initializing it, starting the consumption loop, and handling message processing.
+
+2. **Functionality**:
+   - `initializeConsumerGroup`: Only sets up and returns the consumer group.
+   - `setupConsumerGroup`: Uses the consumer group to consume messages in a continuous loop and processes these messages.
+
+3. **Error Handling**:
+   - `initializeConsumerGroup`: Returns an error if the consumer group cannot be created.
+   - `setupConsumerGroup`: Logs errors during message consumption and checks for context cancellation to manage the consumer group's lifecycle.
+
+In summary, `initializeConsumerGroup` is a lower-level function that prepares the consumer group for use, while `setupConsumerGroup` is a higher-level function that manages the ongoing operation of consuming messages from Kafka using the consumer group.

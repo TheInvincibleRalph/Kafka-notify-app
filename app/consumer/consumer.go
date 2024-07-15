@@ -85,7 +85,7 @@ func initializeConsumerGroup() (sarama.ConsumerGroup, error) {
 	return consumerGroup, nil
 }
 
-func setupConsumerGroup(ctx context.Context, store *NotificationStore) { //this function sets up and runs the consumer group
+func setupConsumerGroup(ctx context.Context, store *NotificationStore) { //this function sets up and runs a consumer group responsible for consuming messages from a kafka topic
 	consumerGroup, err := initializeConsumerGroup()
 	if err != nil {
 		log.Printf("initialization error: %v", err)
@@ -107,7 +107,7 @@ func setupConsumerGroup(ctx context.Context, store *NotificationStore) { //this 
 	}
 }
 
-func (consumer *Consumer) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
+func (consumer *Consumer) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error { //this claim represents the partitions assigned to the consumer for processing.
 	for msg := range claim.Messages() { //iterates over the messages in the claim
 		userID := string(msg.Key) //converts the message key (which is a byte array) to a string, representing the user ID
 		var notification models.Notification
